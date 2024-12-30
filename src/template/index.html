@@ -6,7 +6,7 @@
     <title>Raspberry PI Web Dashboard</title>
     <link rel="icon" href="{{ url_for('static', filename='Images/RaspberryPILogo.ico') }}" type="image/x-icon">
     <link rel="shortcut icon" href="{{ url_for('static', filename='Images/RaspberryPILogo.ico') }}" type="image/x-icon">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
 </head>
 
@@ -40,7 +40,7 @@
         </div>
         <h3>GPU Metrics</h3>
         <div class="div-block">
-            <div class="text-block-2"><strong class="bold-text">GPU Memory Usage:</strong></div>
+            <div class="text-block-2"><strong class="bold-text">GPU Memory:</strong></div>
             <div id="GPUMemory"></div>
         </div>
         <div class="div-block">
@@ -84,8 +84,16 @@
           <div class="text-block-2"><strong class="bold-text-5">Swap Used:</strong></div>
           <div id="SwapUsed"></div>
         </div>
-        <h3>System Logs</h3>
-        
+        <h2>Top Processes</h2>
+        <table>
+          <tr>
+            <th> Process </th>
+            <th> Process ID (PID) </th>
+            <th> CPU Usage (%) </th>
+          </tr>
+          <tbody id="TopProcesses"> </tbody>
+        </table>
+        <h2>System Logs</h2>
         <div class="div-block terminal">
             <div id="Terminal" class="text-block-2 terminal-entry">Text</div>
         </div>
@@ -120,6 +128,24 @@
                 document.getElementById('DiskReadCount').textContent = data.disk_health.read_count;
                 document.getElementById('DiskWriteCount').textContent = data.disk_health.write_count;
                 document.getElementById('SwapUsed').textContent = data.swap_usage.used + ' MB';
+
+                // Clear the previous list of processes
+                const processesContainer = document.getElementById('TopProcesses');
+                processesContainer.innerHTML = '';
+                
+                // Display the top 10 processes
+                data.process_info.forEach((process, index) => {
+                    const processElement = document.createElement('tr');
+                    processElement.classList.add('process-item');
+                    processElement.innerHTML = `
+                        <tr>
+                            <td> <strong>${index + 1}. ${process.name}</strong><br> </td>
+                            <td> ${process.pid} </td>
+                            <td> ${process.cpu_percent} % </td>
+                        </tr>
+                    `;
+                    processesContainer.appendChild(processElement);
+                });
 
                 // Terminal
                 document.getElementById('Terminal').innerHTML = data.terminal_output;

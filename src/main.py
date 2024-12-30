@@ -14,6 +14,10 @@ app = Flask(__name__)
 def index():
     return render_template("index.html")
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
 def get_gpu_info():
     try:
         # Get GPU memory usage and clean the output
@@ -91,14 +95,30 @@ def get_swap_usage():
     except Exception as e:
         return f"Error: {e}"
 
-def get_processes_info():
+def get_top_cpu_processes():
     try:
+        # Get all processes and their CPU usage
         processes = []
-        for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent']):
-            processes.append(proc.info)
-        return processes
+        for proc in psutil.process_iter(['pid', 'name', 'cpu_percent']):
+            try:
+                # Append process info if it has valid CPU usage
+                processes.append({
+                    'pid': proc.info['pid'],
+                    'name': proc.info['name'],
+                    'cpu_percent': proc.info['cpu_percent']
+                })
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                # Skip processes that no longer exist or cannot be accessed
+                pass
+
+        # Sort processes by CPU usage in descending order
+        processes = sorted(processes, key=lambda x: x['cpu_percent'], reverse=True)
+
+        # Get top 10 CPU-intensive processes
+        top_processes = processes[:10]
+        return top_processes
     except Exception as e:
-        return f"Error: {e}"
+        return {'error': str(e)}
 
 def terminal_output():
     try:
@@ -131,10 +151,10 @@ def status():
         'disk_health': get_disk_health(),
         'system_load': get_system_load(),
         'swap_usage': get_swap_usage(),
-        'process_info': get_processes_info(),
+        'process_info': get_top_cpu_processes(),
         'terminal_output': terminal_output()
     }
     return jsonify(data)
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0",debug=True)
+    app.run(host="0.0.0.0", debug=True)
