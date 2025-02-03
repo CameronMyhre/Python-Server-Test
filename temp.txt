@@ -1,0 +1,9 @@
+public class GreatWallOfChinaSummary {
+    public static void main(String[] args) {
+        String summary = "The Great Wall of China is one of the most remarkable architectural feats in history. "
+                       + "It was built over several dynasties, with construction starting as early as the 7th century BC. "
+                       + "The wall stretches over 13,000 miles and was primarily built to protect Chinese states and empires "
+                       + "from invasions and raids. Today, it stands as a symbol of China's historical strength and perseverance.";
+        System.out.println(summary);
+    }
+}
